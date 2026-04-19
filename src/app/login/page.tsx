@@ -1,5 +1,5 @@
 "use client";
-import { AtSign, Lock, Eye, EyeOff } from "lucide-react";
+import { AtSign, Lock, Eye, EyeOff, UserCheck } from "lucide-react";
 import { Input } from "@/src/components/ui/input";
 import React, { ChangeEvent, useState } from "react";
 
@@ -13,42 +13,46 @@ import {
   CardTitle,
 } from "@/src/components/ui/card";
 import Link from "next/link";
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
+import { loginUserAction } from "@/features/auth/server/auth.actions";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginUserDaata, loginUserSchema } from "@/features/auth/auth.schema";
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginUserSchema),
   });
 
-  const handleInputChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const onSubmit = async (data: LoginUserDaata) => {
     try {
-      console.log(e);
+      const result = await loginUserAction(data);
+      if (result.status === "SUCCESS") toast.success(result.message);
+      else toast.error(result.message);
     } catch (error) {}
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted p-4">
       <Card className="w-full max-w-md shadow-lg rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+        <CardHeader className="flex flex-col items-center">
+          <UserCheck
+            className="bg-black text-white p-3 rounded-4xl"
+            height={50}
+            width={50}
+          />
+          <CardTitle className="text-2xl">Join our job portal</CardTitle>
           <CardDescription>Sign in with your account </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -58,14 +62,16 @@ const Login: React.FC = () => {
                   id="email"
                   type="email"
                   placeholder="Enter email"
-                  className="pl-10"
-                  value={formData.email}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange("email", e.target.value)
-                  }
+                  className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+                  {...register("email")}
                   required
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -78,11 +84,8 @@ const Login: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter password"
                   autoComplete="new-password"
-                  className="pl-10 pr-10 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
-                  value={formData.password}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    handleInputChange("password", e.target.value)
-                  }
+                  className={`pl-10 pr-10 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${errors.password ? "border-destructive" : ""}`}
+                  {...register("password")}
                   required
                 />
                 <button
@@ -97,6 +100,11 @@ const Login: React.FC = () => {
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             <Button type="submit" className="w-full">

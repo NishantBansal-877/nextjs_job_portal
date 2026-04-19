@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
 import { Poppins, Roboto } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -22,7 +22,10 @@ export default function RootLayout({
       lang="en"
       className={`${poppins.variable} ${roboto.variable} ${poppins.className}  h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }
