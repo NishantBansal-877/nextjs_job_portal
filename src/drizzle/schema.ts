@@ -53,7 +53,7 @@ export const employers = mysqlTable("employers", {
 
   deletedAt: timestamp("deleted_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-  updatedAt: timestamp("deleted_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 export const applicants = mysqlTable("applicants", {
@@ -72,12 +72,12 @@ export const applicants = mysqlTable("applicants", {
     "masters",
     "phd",
   ]),
-  experience: text("experoence"),
+  experience: text("experience"),
   websiteUrl: varchar("website_url", { length: 255 }),
   location: varchar("location", { length: 255 }),
   deletedAt: timestamp("deleted_at", { mode: "string" }),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
-  updatedAt: timestamp("deleted_at", { mode: "string" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
 });
 
 export const usersRelation = relations(users, ({ one, many }) => ({

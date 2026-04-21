@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/features/auth/server/auth.queries";
+import { getCurrentUser } from "@/src/features/auth/server/auth.queries";
 import Image from "next/image";
 
 export default async function Home() {

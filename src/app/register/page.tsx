@@ -8,40 +8,34 @@ import {
   EyeOff,
   UserCheck,
 } from "lucide-react";
-import { Input } from "@/src/components/ui/input";
-import React, {
-  ChangeEvent,
-  FormEvent,
-  SyntheticEvent,
-  useReducer,
-  useState,
-} from "react";
+import { Input } from "@/components/ui/input";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/src/components/ui/select";
-import { Label } from "@/src/components/ui/label";
-import { Button } from "@/src/components/ui/button";
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
+} from "@/components/ui/card";
 import Link from "next/link";
-import { registerUserAction } from "@/features/auth/server/auth.actions";
+import { registerUserAction } from "@/src/features/auth/server/auth.actions";
 import { toast } from "sonner";
 import { Controller, useForm } from "react-hook-form";
 import {
   RegisterUserWithConfirmData,
   registerUserWithConfirmSchema,
-} from "@/features/auth/auth.schema";
+} from "@/src/features/auth/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const Registration: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -64,9 +58,9 @@ const Registration: React.FC = () => {
 
       if (result.status === "SUCCESS") {
         if (data.role === "employer") {
-          router.push("/employer");
+          router.push("/employer-dashboard");
         } else {
-          router.push("/");
+          router.push("/dashboard");
         }
       }
       if (result.status === "SUCCESS") toast.success(result.message);

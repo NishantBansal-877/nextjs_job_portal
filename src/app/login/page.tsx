@@ -1,23 +1,26 @@
 "use client";
 import { AtSign, Lock, Eye, EyeOff, UserCheck } from "lucide-react";
-import { Input } from "@/src/components/ui/input";
+import { Input } from "@/components/ui/input";
 import React, { ChangeEvent, useState } from "react";
 
-import { Label } from "@/src/components/ui/label";
-import { Button } from "@/src/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
+} from "@/components/ui/card";
 import Link from "next/link";
-import { loginUserAction } from "@/features/auth/server/auth.actions";
+import { loginUserAction } from "@/src/features/auth/server/auth.actions";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginUserDaata, loginUserSchema } from "@/features/auth/auth.schema";
+import {
+  LoginUserDaata,
+  loginUserSchema,
+} from "@/src/features/auth/auth.schema";
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);

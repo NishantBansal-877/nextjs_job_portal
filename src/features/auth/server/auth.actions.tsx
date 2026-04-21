@@ -16,6 +16,7 @@ export const registerUserAction = async (data: RegisterUserData) => {
   try {
     const { data: validatedData, error } = registerUserSchema.safeParse(data);
     if (error) return { status: "ERROR", message: error.issues[0].message };
+
     const { name, userName, email, password, role } = validatedData;
 
     const [user] = await db
@@ -25,31 +26,37 @@ export const registerUserAction = async (data: RegisterUserData) => {
 
     if (user) {
       if (user.email === email)
-        return { status: "Error", message: "Email Aleready Exists" };
+        return { status: "ERROR", message: "Email Aleready Exists" };
       else {
         return {
-          status: "Error",
+          status: "ERROR",
           message: "UserName Already Exists",
         };
       }
     }
     const hashPassword = await argon2.hash(password);
-    const [result] = await db
-      .insert(users)
-      .values({ name, userName, email, password: hashPassword, role });
 
-    if (role === "applicant") {
-      await db.insert(applicants).values({ id: result.insertId });
-    } else {
-      await db.insert(employers).values({ id: result.insertId });
-    }
+    await db.transaction(async (tx) => {
+      const result = await tx
+        .insert(users)
+        .values({ name, userName, email, password: hashPassword, role })
+        .$returningId();
 
-    await createSessionAndSetCookies(result.insertId);
+      if (role === "applicant") {
+        await tx.insert(applicants).values({ id: result[0].id });
+      } else {
+        await tx.insert(employers).values({ id: result[0].id });
+      }
+
+      await createSessionAndSetCookies(result[0].id, tx);
+    });
+
     return {
       status: "SUCCESS",
       message: "Registraipon Completed Successfully",
     };
   } catch (error) {
+    console.log(error);
     return {
       status: "ERROR",
       message: "Unknown Error Occurred! Please Try Again Later",
