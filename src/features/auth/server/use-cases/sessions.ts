@@ -1,9 +1,9 @@
+import { cookies, headers } from "next/headers";
 import crypto from "crypto";
 import { getIPAddress } from "./location";
-import { cookies, headers } from "next/headers";
-import { db } from "@/src/config/db";
 import { sessions, users } from "@/src/drizzle/schema";
-import { SESSION_LIFETIME, SESSION_REFRESH_TIME } from "@/src/config/constants";
+import { db } from "@/src/config/db";
+import { SESSION_LIFETIME, SESSION_REFRESH_TIME } from "@/src/config/constant";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
@@ -19,12 +19,17 @@ const generateSessionToken = () => {
   return crypto.randomBytes(32).toString("hex").normalize();
 };
 
+// generates a 256-bit cryptographically secure token
+// <Buffer 4f 8a 9b 12 ... > (raw binary, not readable)
+// Converts that binary data into a hexadecimal string.("4f8a9b12d1e9a8c3f5...")
+// This ensures the string is in a consistent Unicode normalization form (usually NFC).
+
 const createUserSession = async ({
   token,
   userId,
   userAgent,
   ip,
-  tx = db, //default db
+  tx = db,
 }: CreateSessionData) => {
   const hashedToken = crypto.createHash("sha-256").update(token).digest("hex");
 
@@ -35,9 +40,11 @@ const createUserSession = async ({
     ip,
     userAgent,
   });
+
   return session;
 };
 
+// Give me the type of the first parameter of the callback inside db.transaction — that's the tx object
 type DbClient = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export const createSessionAndSetCookies = async (
@@ -47,11 +54,12 @@ export const createSessionAndSetCookies = async (
   const token = generateSessionToken();
   const ip = await getIPAddress();
   const headersList = await headers();
+
   await createUserSession({
     token,
-    userId,
+    userId: userId,
     userAgent: headersList.get("user-agent") || "",
-    ip,
+    ip: ip,
     tx,
   });
 
@@ -84,8 +92,8 @@ export const validateSessionAndGetUser = async (session: string) => {
       role: users.role,
       phoneNumber: users.phoneNumber,
       email: users.email,
-      // emailVerifiedAt:users.emailVerifiedAt,
-      // avatarUrl:users.avatarUrl
+      // emailVerifiedAt: users.emailVerifiedAt,
+      avatarUrl: users.avatarUrl,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     })
@@ -95,10 +103,12 @@ export const validateSessionAndGetUser = async (session: string) => {
 
   if (!user) return null;
 
+  // 2:
   if (Date.now() >= user.session.expiresAt.getTime()) {
     await invalidateSession(user.session.id);
     return null;
   }
+  // console.log(expiresAt.getTime()); // 1764562512000
 
   if (
     Date.now() >=

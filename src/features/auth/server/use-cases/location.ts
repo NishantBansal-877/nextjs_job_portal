@@ -10,7 +10,7 @@ const IP_HEADER_PRIORITY = [
   "forwarded",
 ];
 
-export const getIPAddress = async () => {
+export async function getIPAddress() {
   const headersList = await headers();
   for (const header of IP_HEADER_PRIORITY) {
     const value = headersList.get(header);
@@ -20,4 +20,4 @@ export const getIPAddress = async () => {
     }
   }
   return "0.0.0.0";
-};
+}

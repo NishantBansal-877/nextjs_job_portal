@@ -1,16 +1,32 @@
 "use server";
 
 import { db } from "@/src/config/db";
-import { getCurrentUser } from "../auth/server/auth.queries";
-import { employers } from "@/src/drizzle/schema";
+import { getCurrentUser } from "@/src/features/auth/server/auth.queries";
+import { employers, users } from "@/src/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { EmployerProfileData } from "../employers/employers.schema";
+import { EmployerProfileData } from "@/src/features/employers/employers.schema";
 
-const organizationTypeOptions = ["development", "business", "design"] as const;
-type OrganizationType = (typeof organizationTypeOptions)[number];
+// const organizationTypeOptions = [
+//   "development",
+//   "business",
+//   "design",
+//   "android dev",
+//   "cloud business",
+// ] as const;
+// type OrganizationType = (typeof organizationTypeOptions)[number];
 
-const teamSizeOptions = ["1-5", "6-20", "21-50"] as const;
-type TeamSizeType = (typeof teamSizeOptions)[number];
+// const teamSizeOptions = ["1-5", "6-20", "21-50"] as const;
+// type TeamSize = (typeof teamSizeOptions)[number];
+
+// interface IFormInput {
+//   name: string;
+//   description: string;
+//   yearOfEstablishment: string;
+//   location: string;
+//   websiteUrl: string;
+//   organizationType: OrganizationType;
+//   teamSize: TeamSize;
+// }
 
 export const updateEmployerProfileAction = async (
   data: EmployerProfileData,
@@ -29,9 +45,11 @@ export const updateEmployerProfileAction = async (
       websiteUrl,
       organizationType,
       teamSize,
+      avatarUrl,
+      bannerImageUrl,
     } = data;
 
-    await db
+    const updatedEmployer = await db
       .update(employers)
       .set({
         name,
@@ -40,11 +58,21 @@ export const updateEmployerProfileAction = async (
         websiteUrl,
         organizationType,
         teamSize,
+        bannerImageUrl,
         yearOfEstablishment: yearOfEstablishment
           ? parseInt(yearOfEstablishment)
           : null,
       })
       .where(eq(employers.id, currentUser.id));
+
+    console.log("employers ", updatedEmployer);
+
+    await db
+      .update(users)
+      .set({
+        avatarUrl,
+      })
+      .where(eq(users.id, currentUser.id));
 
     return { status: "SUCCESS", message: "Profile updated successfully" };
   } catch (error) {

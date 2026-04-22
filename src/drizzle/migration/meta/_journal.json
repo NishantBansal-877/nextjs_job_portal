@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1776156113121,
-      "tag": "0000_thick_magus",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1776158308533,
-      "tag": "0001_chemical_mephistopheles",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1776570445020,
-      "tag": "0002_stale_ogun",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1776570575881,
-      "tag": "0003_certain_umar",
+      "when": 1776840577056,
+      "tag": "0000_worthless_black_bird",
       "breakpoints": true
     }
   ]

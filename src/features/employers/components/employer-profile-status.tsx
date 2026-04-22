@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import {
   Item,
   ItemActions,
@@ -6,12 +6,11 @@ import {
   ItemDescription,
   ItemMedia,
   ItemTitle,
-} from "@/components/ui/item";
-
+} from "@/src/components/ui/item";
+import { getCurrentEmployerDetails } from "@/src/features/server/employers.queries";
 import { ShieldAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentEmployerDetails } from "@/src/features/server/employers.queries";
 
 export async function EmployerProfileCompletionStatus() {
   const currentEmployer = await getCurrentEmployerDetails();
@@ -34,7 +33,7 @@ export async function EmployerProfileCompletionStatus() {
           </ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Button size="sm" className="text-white bg-destructive" asChild>
+          <Button size="sm" variant="destructive" asChild>
             <Link href="/employer-dashboard/settings">Complete Profile</Link>
           </Button>
         </ItemActions>

@@ -1,9 +1,15 @@
 "use server";
+
 import { db } from "@/src/config/db";
 import { applicants, employers, users } from "@/src/drizzle/schema";
 import argon2 from "argon2";
 import { eq, or } from "drizzle-orm";
-import { RegisterUserData, registerUserSchema } from "../auth.schema";
+import {
+  LoginUserData,
+  loginUserSchema,
+  RegisterUserData,
+  registerUserSchema,
+} from "../auth.schema";
 import {
   createSessionAndSetCookies,
   invalidateSession,
@@ -12,11 +18,25 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 
+// 👉 Server Actions in Next.js are special functions that run only on the server, not in the user’s browser.
+
+// They let you perform things like database queries, API calls, form submissions, or data mutations directly from your React components — without creating a separate API route.
+
+// You just mark a function with "use server", and Next.js automatically runs it on the server.
+
+//*When you submit a <form> in Next.js using action={yourServerAction}, the framework sends a FormData object to that server function.
+
+// FormData is a built-in Web API type (just like Request, Response, or URLSearchParams).
+
+// It provides methods like .get(), .set(), .append(), and .entries() — which you’re already using here.
+
 export const registerUserAction = async (data: RegisterUserData) => {
+  console.log("Hii I am register");
+
   try {
     const { data: validatedData, error } = registerUserSchema.safeParse(data);
     if (error) return { status: "ERROR", message: error.issues[0].message };
-
+    // console.log(formData.get("name"));
     const { name, userName, email, password, role } = validatedData;
 
     const [user] = await db
@@ -26,37 +46,38 @@ export const registerUserAction = async (data: RegisterUserData) => {
 
     if (user) {
       if (user.email === email)
-        return { status: "ERROR", message: "Email Aleready Exists" };
-      else {
+        return { status: "ERROR", message: "Email Already Exists" };
+      else
         return {
           status: "ERROR",
-          message: "UserName Already Exists",
+          message: "UseName Already Exists",
         };
-      }
     }
+
     const hashPassword = await argon2.hash(password);
+    console.log("hashPassword: ", hashPassword);
 
     await db.transaction(async (tx) => {
-      const result = await tx
+      const [result] = await tx
         .insert(users)
-        .values({ name, userName, email, password: hashPassword, role })
-        .$returningId();
+        .values({ name, userName, email, password: hashPassword, role });
+
+      console.log(result);
 
       if (role === "applicant") {
-        await tx.insert(applicants).values({ id: result[0].id });
+        await tx.insert(applicants).values({ id: result.insertId });
       } else {
-        await tx.insert(employers).values({ id: result[0].id });
+        await tx.insert(employers).values({ id: result.insertId });
       }
 
-      await createSessionAndSetCookies(result[0].id, tx);
+      await createSessionAndSetCookies(result.insertId, tx);
     });
 
     return {
       status: "SUCCESS",
-      message: "Registraipon Completed Successfully",
+      message: "Registration Completed Successfully",
     };
   } catch (error) {
-    console.log(error);
     return {
       status: "ERROR",
       message: "Unknown Error Occurred! Please Try Again Later",
@@ -64,14 +85,18 @@ export const registerUserAction = async (data: RegisterUserData) => {
   }
 };
 
-type loginData = {
-  email: string;
-  password: string;
-};
+// type LoginData = {
+//   email: string;
+//   password: string;
+// };
 
-export const loginUserAction = async (data: loginData) => {
+export const loginUserAction = async (data: LoginUserData) => {
   try {
-    const { email, password } = data;
+    const { data: validatedData, error } = loginUserSchema.safeParse(data);
+    if (error) return { status: "ERROR", message: error.issues[0].message };
+    // console.log(formData.get("name"));
+    const { email, password } = validatedData;
+    // const { email, password } = data;
 
     const [user] = await db.select().from(users).where(eq(users.email, email));
 
@@ -80,15 +105,15 @@ export const loginUserAction = async (data: loginData) => {
     }
 
     const isValidPassword = await argon2.verify(user.password, password);
-    if (!isValidPassword) {
+
+    if (!isValidPassword)
       return { status: "ERROR", message: "Invalid Email or Password" };
-    }
 
     await createSessionAndSetCookies(user.id);
 
     return {
       status: "SUCCESS",
-      message: "Login Succcessful",
+      message: "Login Successful",
     };
   } catch (error) {
     return {
@@ -98,11 +123,13 @@ export const loginUserAction = async (data: loginData) => {
   }
 };
 
+// logout user
 export const logoutUserAction = async () => {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
 
   if (!session) return redirect("/login");
+  console.log(session);
 
   const hashedToken = crypto
     .createHash("sha-256")
